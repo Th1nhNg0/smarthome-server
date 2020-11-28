@@ -12,7 +12,7 @@
     "autoprefixer": "^10.0.4",
     "express": "^4.17.1",
     "postcss": "^8.1.10",
-    "socket.io": "^3.0.3",
+    "socket.io": "^2.3.0",
     "tailwindcss": "^2.0.1"
   }
 }

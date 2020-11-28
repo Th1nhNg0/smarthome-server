@@ -1,9 +1,13 @@
 var express = require("express");
 var app = express();
 var http = require("http").createServer(app);
-var io = require("socket.io")(http);
+var io = require("socket.io")(http, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
 app.use(express.static("public"));
-
 let board_data = {
   boardIsConnected: false,
 };
@@ -19,6 +23,7 @@ io.on("connection", (socket) => {
 
   socket.on("temp_sensor", (data) => {
     io.emit("temp_sensor", data);
+    console.log("RECIEVED DATA FROM BOARD", data);
   });
 
   socket.on("GPIO_control", (payload) => {
@@ -28,6 +33,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`a ${socket.device_name} disconnected`);
+    if (socket.device_name == "board") {
+      board_data.boardIsConnected = false;
+    }
   });
 });
 

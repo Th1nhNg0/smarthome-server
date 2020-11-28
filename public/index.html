@@ -162,7 +162,7 @@
           boardConnect(data.boardIsConnected);
         });
         socket.on("temp_sensor", (data) => {
-          addData(temp_graph, data.date, date.value);
+          addData(temp_graph, data.date, data.value);
         });
       });
     </script>
