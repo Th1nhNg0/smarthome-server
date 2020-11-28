@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>Nha thong minh</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css"
@@ -14,9 +14,6 @@
   <body class="bg-gray-400">
     <div class="container mx-auto min-h-screen p-10">
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <div class="lg:col-span-4 lg:row-span-3 p-4 rounded-3xl bg-white">
-          <canvas id="canvas"></canvas>
-        </div>
         <div
           class="p-4 rounded-3xl bg-white text-center flex flex-col justify-center items-center"
         >
@@ -29,7 +26,7 @@
           </p>
         </div>
         <div
-          class="p-4 rounded-3xl bg-white text-center flex flex-col justify-center items-center"
+          class="row-start-2 p-4 rounded-3xl bg-white text-center flex flex-col justify-center items-center"
         >
           <h1 class="text-xl font-bold">Điều khiển chân</h1>
           <form
@@ -66,10 +63,8 @@
             </button>
           </form>
         </div>
-        <div
-          class="p-4 rounded-3xl bg-white h-full flex flex-col justify-center items-center"
-        >
-          <h1 class="text-xl font-bold">Logs:</h1>
+        <div class="lg:col-span-4 lg:row-span-2 p-4 rounded-3xl bg-white">
+          <canvas id="canvas"></canvas>
         </div>
       </div>
     </div>
@@ -99,6 +94,14 @@
         });
         chart.update();
       }
+      function removeData(chart) {
+        chart.data.labels.shift();
+        chart.data.datasets.forEach((dataset) => {
+          dataset.data.shift();
+        });
+        chart.update();
+      }
+
       let config = {
         type: "line",
         data: {
@@ -114,10 +117,6 @@
         },
         options: {
           responsive: true,
-          title: {
-            display: true,
-            text: "Nhiệt độ phòng A",
-          },
           scales: {
             xAxes: [
               {
@@ -163,6 +162,7 @@
         });
         socket.on("temp_sensor", (data) => {
           addData(temp_graph, data.date, data.value);
+          if (temp_graph.data.labels.length > 20) removeData(temp_graph);
         });
       });
     </script>
