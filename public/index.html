@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css"
+      integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w=="
+      crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="bg-gray-400">
+    <div class="container mx-auto min-h-screen p-10">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <div class="lg:col-span-4 lg:row-span-3 p-4 rounded-3xl bg-white">
+          <canvas id="canvas"></canvas>
+        </div>
+        <div
+          class="p-4 rounded-3xl bg-white text-center flex flex-col justify-center items-center"
+        >
+          <h1 class="text-xl font-bold">Trạng thái mạch</h1>
+          <p
+            id="status"
+            class="uppercase font-bold bg-red-500 mt-3 p-4 text-white"
+          >
+            Không thể kết nối
+          </p>
+        </div>
+        <div
+          class="p-4 rounded-3xl bg-white text-center flex flex-col justify-center items-center"
+        >
+          <h1 class="text-xl font-bold">Điều khiển chân</h1>
+          <form
+            id="GPIO_control"
+            class="flex flex-col gap-4 mt-5 justify-center"
+          >
+            <div>
+              <span>Cổng GPIO: </span>
+              <input
+                class="border text-center"
+                type="number"
+                name="GPIO"
+                min="0"
+                max="50"
+                value="0"
+              />
+            </div>
+            <div>
+              <span>Trạng thái: </span>
+              <input
+                class="border text-center"
+                type="number"
+                name="state"
+                min="0"
+                max="1"
+                value="0"
+              />
+            </div>
+            <button
+              class="bg-green-500 rounded-md px-4 py-2 font-bold text-white"
+              type="submit"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+        <div
+          class="p-4 rounded-3xl bg-white h-full flex flex-col justify-center items-center"
+        >
+          <h1 class="text-xl font-bold">Logs:</h1>
+        </div>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.js"
+      integrity="sha512-zO8oeHCxetPn1Hd9PdDleg5Tw1bAaP0YmNvPY8CwcRyUk7d7/+nyElmFrB6f7vg4f7Fv4sui1mcep8RIEShczg=="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      function boardConnect(isConnected) {
+        if (isConnected) {
+          $("#status").addClass("bg-green-500");
+          $("#status").removeClass("bg-red-500");
+          $("#status").text("Đã kết nối");
+        } else {
+          $("#status").addClass("bg-red-500");
+          $("#status").removeClass("bg-green-500");
+          $("#status").text("Không thể kết nối");
+        }
+      }
+      function addData(chart, label, data) {
+        chart.data.labels.push(label);
+        chart.data.datasets.forEach((dataset) => {
+          dataset.data.push(data);
+        });
+        chart.update();
+      }
+      let config = {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              backgroundColor: "blue",
+              borderColor: "blue",
+              fill: false,
+              label: "Nhiet do",
+              data: [],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: "Nhiệt độ phòng A",
+          },
+          scales: {
+            xAxes: [
+              {
+                type: "time",
+                display: true,
+                scaleLabel: {
+                  display: true,
+                  labelString: "Date",
+                },
+                ticks: {
+                  major: {
+                    fontStyle: "bold",
+                    fontColor: "#FF0000",
+                  },
+                },
+              },
+            ],
+            yAxes: [
+              {
+                display: true,
+                scaleLabel: {
+                  display: true,
+                  labelString: "Độ C",
+                },
+              },
+            ],
+          },
+        },
+      };
+      $(function () {
+        let socket = io("", { query: "name=website" });
+        let ctx = document.getElementById("canvas").getContext("2d");
+        let temp_graph = new Chart(ctx, config);
+
+        $("#GPIO_control").on("submit", function (e) {
+          e.preventDefault();
+          var data = $("#GPIO_control").serializeArray();
+          socket.emit("GPIO_control", data);
+        });
+
+        socket.on("board_data", (data) => {
+          boardConnect(data.boardIsConnected);
+        });
+        socket.on("temp_sensor", (data) => {
+          addData(temp_graph, data.date, date.value);
+        });
+      });
+    </script>
+  </body>
+</html>

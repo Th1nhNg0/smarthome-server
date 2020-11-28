@@ -1,10 +1,8 @@
-var app = require("express")();
+var express = require("express");
+var app = express();
 var http = require("http").createServer(app);
 var io = require("socket.io")(http);
-
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+app.use(express.static("public"));
 
 let board_data = {
   boardIsConnected: false,
@@ -18,6 +16,15 @@ io.on("connection", (socket) => {
   socket.device_name = socket.handshake.query.name;
   if (socket.device_name == "board") board_data.boardIsConnected = true;
   console.log(`a ${socket.device_name} connected`);
+
+  socket.on("temp_sensor", (data) => {
+    io.emit("temp_sensor", data);
+  });
+
+  socket.on("GPIO_control", (payload) => {
+    io.emit("GPIO_control", payload);
+    console.log("CLIENT SEND GPIO_CONTROL CMD: ", payload);
+  });
 
   socket.on("disconnect", () => {
     console.log(`a ${socket.device_name} disconnected`);

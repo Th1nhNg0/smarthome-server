@@ -9,7 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "autoprefixer": "^10.0.4",
     "express": "^4.17.1",
-    "socket.io": "^3.0.3"
+    "postcss": "^8.1.10",
+    "socket.io": "^3.0.3",
+    "tailwindcss": "^2.0.1"
   }
 }
