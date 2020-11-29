@@ -6,7 +6,7 @@ import datetime
 
 # standard Python
 sio = socketio.Client()
-v = 30
+v = [30, 30, 30, 30]
 
 
 @sio.event
@@ -35,11 +35,13 @@ def setInterval(func, time):
 
 def foo():
     global v
-    x = str(datetime.datetime.now())
-    v = v + random.uniform(-1, 1)
 
-    sio.emit('temp_sensor', {'date': x, 'value': v})
-    print("send data to server", x, v)
+    x = str(datetime.datetime.now())
+    for i in range(len(v)):
+        v[i] = v[i] + random.uniform(-1, 1)
+    send_data = [{'date': x, 'value': vi} for vi in v]
+    sio.emit('temp_sensor', send_data)
+    print("send data to server", v)
 
 
 setInterval(foo, 1)

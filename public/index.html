@@ -1,9 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Nha thong minh</title>
+    <title>Nha thong minh vai ca lon</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="/apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="/apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="/apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/android-icon-192x192.png"
+    />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css"
@@ -13,7 +55,7 @@
 
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body class="bg-gray-400">
+  <body class="bg-gray-600">
     <div class="container mx-auto min-h-screen p-5 md:p-10">
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
         <div
@@ -65,9 +107,43 @@
             </button>
           </form>
         </div>
-        <div class="lg:col-span-4 lg:row-span-2 p-4 rounded-3xl bg-white">
-          <h1 class="text-xl font-bold">Biểu đồ nhiệt phòng A</h1>
+        <!-- this is fucking chart -->
+        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+          <h1 class="text-xl font-bold">
+            Biểu đồ nhiệt thời gian thực phòng A
+          </h1>
+          <p class="text-blue-600 font-bold text-2xl">
+            <span id="temp_1">30</span>°C
+          </p>
           <canvas id="canvas"></canvas>
+        </div>
+        <!-- this is fucking chart 2 -->
+        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+          <h1 class="text-xl font-bold">
+            Biểu đồ nhiệt thời gian thực phòng B
+          </h1>
+          <p class="text-blue-600 font-bold text-2xl">
+            <span id="temp_2">30</span>°C
+          </p>
+          <canvas id="canvas2"></canvas>
+        </div>
+        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+          <h1 class="text-xl font-bold">
+            Biểu đồ nhiệt thời gian thực phòng C
+          </h1>
+          <p class="text-blue-600 font-bold text-2xl">
+            <span id="temp_3">30</span>°C
+          </p>
+          <canvas id="canvas3"></canvas>
+        </div>
+        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+          <h1 class="text-xl font-bold">
+            Biểu đồ nhiệt thời gian thực phòng D
+          </h1>
+          <p class="text-blue-600 font-bold text-2xl">
+            <span id="temp_4">30</span>°C
+          </p>
+          <canvas id="canvas4"></canvas>
         </div>
       </div>
     </div>
@@ -95,6 +171,7 @@
         chart.data.datasets.forEach((dataset) => {
           dataset.data.push(data);
         });
+        if (chart.data.labels.length > 20) removeData(chart);
         chart.update();
       }
       function removeData(chart) {
@@ -104,56 +181,59 @@
         });
         chart.update();
       }
-
-      let config = {
-        type: "line",
-        data: {
-          datasets: [
-            {
-              backgroundColor: "blue",
-              borderColor: "blue",
-              fill: false,
-              label: "Nhiet do",
-              data: [],
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            xAxes: [
+      function createChart(id) {
+        let config = {
+          type: "line",
+          data: {
+            datasets: [
               {
-                type: "time",
-                display: true,
-                scaleLabel: {
-                  display: true,
-                  labelString: "Date",
-                },
-                ticks: {
-                  major: {
-                    fontStyle: "bold",
-                    fontColor: "#FF0000",
-                  },
-                },
-              },
-            ],
-            yAxes: [
-              {
-                display: true,
-                scaleLabel: {
-                  display: true,
-                  labelString: "Độ C",
-                },
+                backgroundColor: "blue",
+                borderColor: "blue",
+                fill: false,
+                label: "Nhiet do",
+                data: [],
               },
             ],
           },
-        },
-      };
+          options: {
+            responsive: true,
+            scales: {
+              xAxes: [
+                {
+                  type: "time",
+                  display: true,
+                  scaleLabel: {
+                    display: true,
+                    labelString: "Date",
+                  },
+                  ticks: {
+                    major: {
+                      fontStyle: "bold",
+                      fontColor: "#FF0000",
+                    },
+                  },
+                },
+              ],
+              yAxes: [
+                {
+                  display: true,
+                  scaleLabel: {
+                    display: true,
+                    labelString: "Độ C",
+                  },
+                },
+              ],
+            },
+          },
+        };
+        return new Chart(document.getElementById(id).getContext("2d"), config);
+      }
       $(function () {
         let socket = io("", { query: "name=website" });
-        let ctx = document.getElementById("canvas").getContext("2d");
-        let temp_graph = new Chart(ctx, config);
-
+        let temp_graph_1 = createChart("canvas");
+        let temp_graph_2 = createChart("canvas2");
+        let temp_graph_3 = createChart("canvas3");
+        let temp_graph_4 = createChart("canvas4");
         $("#GPIO_control").on("submit", function (e) {
           e.preventDefault();
           var data = $("#GPIO_control").serializeArray();
@@ -164,8 +244,14 @@
           boardConnect(data.boardIsConnected);
         });
         socket.on("temp_sensor", (data) => {
-          addData(temp_graph, data.date, data.value);
-          if (temp_graph.data.labels.length > 20) removeData(temp_graph);
+          addData(temp_graph_1, data[0].date, data[0].value);
+          $("#temp_1").text(data[0].value.toFixed(2));
+          addData(temp_graph_2, data[1].date, data[1].value);
+          $("#temp_2").text(data[1].value.toFixed(2));
+          addData(temp_graph_3, data[2].date, data[2].value);
+          $("#temp_3").text(data[2].value.toFixed(2));
+          addData(temp_graph_4, data[3].date, data[3].value);
+          $("#temp_4").text(data[3].value.toFixed(2));
         });
       });
     </script>
