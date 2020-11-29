@@ -108,7 +108,9 @@
           </form>
         </div>
         <!-- this is fucking chart -->
-        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+        <div
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+        >
           <h1 class="text-xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng A
           </h1>
@@ -118,7 +120,9 @@
           <canvas id="canvas"></canvas>
         </div>
         <!-- this is fucking chart 2 -->
-        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+        <div
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+        >
           <h1 class="text-xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng B
           </h1>
@@ -127,7 +131,9 @@
           </p>
           <canvas id="canvas2"></canvas>
         </div>
-        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+        <div
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+        >
           <h1 class="text-xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng C
           </h1>
@@ -136,7 +142,9 @@
           </p>
           <canvas id="canvas3"></canvas>
         </div>
-        <div class="col-span-2 p-4 rounded-3xl bg-white relative text-center">
+        <div
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+        >
           <h1 class="text-xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng D
           </h1>
@@ -144,6 +152,53 @@
             <span id="temp_4">30</span>°C
           </p>
           <canvas id="canvas4"></canvas>
+        </div>
+        <div
+          class="p-4 md:col-span-2 row-span-2 rounded-3xl bg-white text-center"
+        >
+          <h1 class="text-xl font-bold">Điều khiển đèn</h1>
+          <div class="flex flex-wrap justify-center items-center gap-6 mt-5">
+            <div
+              onclick="lightToggle(this,1)"
+              data-state="1"
+              class="bg-yellow-400 p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 1</h1>
+            </div>
+            <div
+              onclick="lightToggle(this,2)"
+              data-state="0"
+              class="bg-gray-400 p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 2</h1>
+            </div>
+            <div
+              onclick="lightToggle(this,3)"
+              data-state="1"
+              class="bg-yellow-400 p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 3</h1>
+            </div>
+            <div
+              onclick="lightToggle(this,4)"
+              data-state="0"
+              class="bg-gray-400 p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 4</h1>
+            </div>
+            <div
+              onclick="lightToggle(this,5)"
+              data-state="1"
+              class="bg-yellow-400 p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 5</h1>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -155,6 +210,7 @@
       crossorigin="anonymous"
     ></script>
     <script>
+      let socket = io("", { query: "name=website" });
       function boardConnect(isConnected) {
         if (isConnected) {
           $("#status").addClass("bg-green-500");
@@ -228,31 +284,47 @@
         };
         return new Chart(document.getElementById(id).getContext("2d"), config);
       }
-      $(function () {
-        let socket = io("", { query: "name=website" });
-        let temp_graph_1 = createChart("canvas");
-        let temp_graph_2 = createChart("canvas2");
-        let temp_graph_3 = createChart("canvas3");
-        let temp_graph_4 = createChart("canvas4");
-        $("#GPIO_control").on("submit", function (e) {
-          e.preventDefault();
-          var data = $("#GPIO_control").serializeArray();
-          socket.emit("GPIO_control", data);
+      function lightToggle(e, id) {
+        let state = $(e).data("state");
+        $(e).data("state", state ? 0 : 1);
+        if (state == 1) {
+          $(e).removeClass("bg-yellow-400");
+          $(e).addClass("bg-gray-400");
+        } else {
+          $(e).addClass("bg-yellow-400");
+          $(e).removeClass("bg-gray-400");
+        }
+        socket.emit("GPIO_control", {
+          GPIO: "bulb:" + id,
+          state: state ? 0 : 1,
         });
+      }
+      let temp_graph_1 = createChart("canvas");
+      let temp_graph_2 = createChart("canvas2");
+      let temp_graph_3 = createChart("canvas3");
+      let temp_graph_4 = createChart("canvas4");
+      $("#GPIO_control").on("submit", function (e) {
+        e.preventDefault();
+        let raw_data = $("#GPIO_control").serializeArray();
+        let data = {};
+        raw_data.forEach((element) => {
+          data[element.name] = element.value;
+        });
+        socket.emit("GPIO_control", data);
+      });
 
-        socket.on("board_data", (data) => {
-          boardConnect(data.boardIsConnected);
-        });
-        socket.on("temp_sensor", (data) => {
-          addData(temp_graph_1, data[0].date, data[0].value);
-          $("#temp_1").text(data[0].value.toFixed(2));
-          addData(temp_graph_2, data[1].date, data[1].value);
-          $("#temp_2").text(data[1].value.toFixed(2));
-          addData(temp_graph_3, data[2].date, data[2].value);
-          $("#temp_3").text(data[2].value.toFixed(2));
-          addData(temp_graph_4, data[3].date, data[3].value);
-          $("#temp_4").text(data[3].value.toFixed(2));
-        });
+      socket.on("board_data", (data) => {
+        boardConnect(data.boardIsConnected);
+      });
+      socket.on("temp_sensor", (data) => {
+        addData(temp_graph_1, data[0].date, data[0].value);
+        $("#temp_1").text(data[0].value.toFixed(2));
+        addData(temp_graph_2, data[1].date, data[1].value);
+        $("#temp_2").text(data[1].value.toFixed(2));
+        addData(temp_graph_3, data[2].date, data[2].value);
+        $("#temp_3").text(data[2].value.toFixed(2));
+        addData(temp_graph_4, data[3].date, data[3].value);
+        $("#temp_4").text(data[3].value.toFixed(2));
       });
     </script>
   </body>

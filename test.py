@@ -44,4 +44,4 @@ def foo():
     print("send data to server", v)
 
 
-setInterval(foo, 1)
+setInterval(foo, 5)
