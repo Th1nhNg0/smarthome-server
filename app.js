@@ -53,8 +53,8 @@ io.on("connection", (socket) => {
   socket.on("temp_data", (payload) => {
     let query = `SELECT room_id,date, SUM(temp)/COUNT(temp) as value
     FROM temperature
-    WHERE date >= '2020-12-04 03:00:00'
-    AND date <= '2020-12-09 03:04:00'
+    WHERE date >= '${payload.start_date}'
+    AND date <= '${payload.end_date}'
     AND room_id = ${payload.room_id}
     GROUP BY `;
     let group_by = ["month", "day", "hour", "minute", "second"];
