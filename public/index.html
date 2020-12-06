@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Nha thong minh vai ca lon</title>
+    <title>Smarthouse control</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png" />
@@ -200,6 +200,68 @@
             </div>
           </div>
         </div>
+        <!-- this is chart with magic -->
+        <div
+          class="md:col-span-3 p-4 rounded-3xl bg-white relative text-center"
+        >
+          <h1 class="text-2xl font-bold">Thống kê nhiệt độ</h1>
+          <p class="font-bold text-xl">
+            Nhiệt độ trung bình:
+            <span class="text-blue-600">
+              <span id="query_temp">-</span>°C
+            </span>
+          </p>
+          <form
+            id="temp_data"
+            class="flex flex-wrap gap-5 justify-center items-center"
+          >
+            <div class="flex-1">
+              <label for="type">Theo</label>
+              <select name="type" id="type" class="border-2">
+                <option value="second">Giây</option>
+                <option value="minute" selected>Phút</option>
+                <option value="hour">Giờ</option>
+                <option value="day">Ngày</option>
+                <option value="month">Tháng</option>
+              </select>
+              <br />
+              <label for="room_id">Phòng</label>
+              <select name="room_id" id="room_id" class="border-2">
+                <option value="1">A</option>
+                <option value="2" selected>B</option>
+                <option value="3">C</option>
+                <option value="4">D</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label for="start_date">Ngày bắt đầu: </label>
+              <input
+                required
+                type="datetime-local"
+                name="start_date"
+                id="start_date"
+                class="border-2"
+              />
+            </div>
+            <div class="flex-1">
+              <label for="end_date">Ngày kết thúc: </label>
+              <input
+                required
+                type="datetime-local"
+                name="end_date"
+                id="end_date"
+                class="border-2"
+              />
+            </div>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-green-400 rounded text-white font-bold"
+            >
+              Xem thống kê
+            </button>
+          </form>
+          <canvas id="canvas_query"></canvas>
+        </div>
       </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
@@ -228,6 +290,11 @@
           dataset.data.push(data);
         });
         if (chart.data.labels.length > 20) removeData(chart);
+        chart.update();
+      }
+      function replaceData(chart, labels, data) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = data;
         chart.update();
       }
       function removeData(chart) {
@@ -303,6 +370,7 @@
       let temp_graph_2 = createChart("canvas2");
       let temp_graph_3 = createChart("canvas3");
       let temp_graph_4 = createChart("canvas4");
+      let query_graph = createChart("canvas_query");
       $("#GPIO_control").on("submit", function (e) {
         e.preventDefault();
         let raw_data = $("#GPIO_control").serializeArray();
@@ -312,7 +380,15 @@
         });
         socket.emit("GPIO_control", data);
       });
-
+      $("#temp_data").on("submit", function (e) {
+        e.preventDefault();
+        let raw_data = $("#temp_data").serializeArray();
+        let data = {};
+        raw_data.forEach((element) => {
+          data[element.name] = element.value;
+        });
+        socket.emit("temp_data", data);
+      });
       socket.on("board_data", (data) => {
         boardConnect(data.boardIsConnected);
       });
@@ -325,6 +401,19 @@
         $("#temp_3").text(data[2].value.toFixed(2));
         addData(temp_graph_4, data[3].date, data[3].value);
         $("#temp_4").text(data[3].value.toFixed(2));
+      });
+      socket.on("temp_data", (payload) => {
+        let labels = [];
+        let data = [];
+        let totalTemp = 0;
+        for (let e of payload) {
+          labels.push(e.date);
+          data.push(e.value);
+          totalTemp += e.value;
+        }
+        console.log(payload);
+        replaceData(query_graph, labels, data);
+        $("#query_temp").text((totalTemp / data.length).toFixed(2));
       });
     </script>
   </body>
