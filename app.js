@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
   });
 });
 
-setInterval(() => io.emit("board_data", board_data), 1000 / 60);
+setInterval(() => io.emit("board_data", board_data), 1000 / 10);
 
 http.listen(3000, () => {
   console.log("listening on *:3000");
