@@ -2,18 +2,22 @@ const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
 const mysql = require("mysql");
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "smarthouse",
-});
+require("dotenv").config();
+
+const connection = mysql.createConnection(process.env.DB_HOST);
 
 connection.connect(function (err) {
   if (err) {
     console.error("error connecting: " + err.stack);
     return;
   }
+  connection.query(
+    "CREATE TABLE IF NOT EXISTS `temperature` (`date` timestamp NOT NULL DEFAULT current_timestamp(),`temp` double NOT NULL,`room_id` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    function (error, results, fields) {
+      if (error) throw error;
+      console.log(results);
+    }
+  );
   console.log("connected to database");
 });
 
