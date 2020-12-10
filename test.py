@@ -24,7 +24,7 @@ def disconnect():
     print("I'm disconnected!")
 
 
-sio.connect('http://localhost:3000?name=board')
+sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
 
 
 def setInterval(func, time):

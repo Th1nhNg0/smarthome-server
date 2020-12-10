@@ -15,7 +15,6 @@ connection.connect(function (err) {
     "CREATE TABLE IF NOT EXISTS `temperature` (`date` timestamp NOT NULL DEFAULT current_timestamp(),`temp` double NOT NULL,`room_id` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     function (error, results, fields) {
       if (error) throw error;
-      console.log(results);
     }
   );
   console.log("connected to database");
