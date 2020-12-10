@@ -26,6 +26,10 @@ const io = require("socket.io")(http, {
 app.use(express.static("public"));
 let board_data = {
   boardIsConnected: false,
+  temp: {},
+  data: {
+    GPIO: {},
+  },
 };
 
 io.on("connection", (socket) => {
@@ -38,17 +42,33 @@ io.on("connection", (socket) => {
   console.log(`a ${socket.device_name} connected`);
 
   socket.on("temp_sensor", (data) => {
+    if (data.length == 0) return;
     io.emit("temp_sensor", data);
-    connection.query(
-      `INSERT INTO temperature (date,temp, room_id) VALUES ('${data[0].date}',${data[0].value},1),
-      ('${data[1].date}',${data[1].value},2),
-      ('${data[2].date}',${data[2].value},3),
-      ('${data[3].date}',${data[3].value},4)`,
-      function (error, results, fields) {
-        if (error) throw error;
-        console.log("add temp to database", data);
+    let query = `INSERT INTO temperature (date,temp, room_id) VALUES `;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].value > 40) {
+        board_data.temp[i].status = 2;
+      } else if (
+        board_data.temp[i] &&
+        data[i].value - board_data.temp[i].value > 3 &&
+        new Date(data[i].date) - new Date(board_data.temp[i].date) <= 5000
+      ) {
+        board_data.temp[i].status = 1;
+      } else {
+        if (!board_data.temp[i]) {
+          board_data.temp[i] = {};
+        }
+        board_data.temp[i].status = 0;
       }
-    );
+      board_data.temp[i].value = data[i].value;
+      board_data.temp[i].date = data[i].date;
+      query += `('${data[i].date}',${data[i].value},${i + 1})`;
+      if (i < data.length - 1) query += ",";
+    }
+    connection.query(query, function (error, results, fields) {
+      if (error) throw error;
+      console.log("add temp to database", data);
+    });
   });
   socket.on("temp_data", (payload) => {
     let query = `SELECT room_id,date, SUM(temp)/COUNT(temp) as value
@@ -79,9 +99,14 @@ io.on("connection", (socket) => {
       board_data.boardIsConnected = false;
     }
   });
+  socket.on("board_data", (data) => {
+    board_data.data = data;
+  });
 });
 
-setInterval(() => io.emit("board_data", board_data), 1000 / 10);
+setInterval(() => {
+  io.emit("board_data", board_data);
+}, 1000);
 
 http.listen(3000, () => {
   console.log("listening on *:3000");

@@ -38,7 +38,7 @@ def foo():
 
     x = str(datetime.datetime.now())
     for i in range(len(v)):
-        v[i] = v[i] + random.uniform(-1, 1)
+        v[i] = v[i] + random.uniform(-8, 8)
     send_data = [{'date': x, 'value': vi} for vi in v]
     sio.emit('temp_sensor', send_data)
     print("send data to server", v)
