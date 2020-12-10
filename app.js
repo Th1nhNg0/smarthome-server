@@ -33,7 +33,10 @@ app.get("/googleassistant", (req, res) => {
 
 let board_data = {
   boardIsConnected: false,
-  temp: {},
+  temp: {
+    lastUpdate: new Date(),
+  },
+
   data: {
     GPIO: {},
   },
@@ -52,23 +55,28 @@ io.on("connection", (socket) => {
     if (data.length == 0) return;
     io.emit("temp_sensor", data);
     let query = `INSERT INTO temperature (date,temp, room_id) VALUES `;
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].value > 40) {
-        board_data.temp[i].status = 2;
-      } else if (
-        board_data.temp[i] &&
-        data[i].value - board_data.temp[i].value > 3 &&
-        new Date(data[i].date) - new Date(board_data.temp[i].date) <= 5000
-      ) {
-        board_data.temp[i].status = 1;
-      } else {
-        if (!board_data.temp[i]) {
-          board_data.temp[i] = {};
+
+    if (new Date(data[0].date) - board_data.temp.lastUpdate >= 3000) {
+      board_data.temp.lastUpdate = new Date(data[0].date);
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].value > 40) {
+          board_data.temp[i].status = 2;
+        } else if (
+          board_data.temp[i] &&
+          data[i].value - board_data.temp[i].value > 2
+        ) {
+          board_data.temp[i].status = 1;
+        } else {
+          if (!board_data.temp[i]) {
+            board_data.temp[i] = {};
+          }
+          board_data.temp[i].status = 0;
         }
-        board_data.temp[i].status = 0;
+        board_data.temp[i].value = data[i].value;
+        board_data.temp[i].date = data[i].date;
       }
-      board_data.temp[i].value = data[i].value;
-      board_data.temp[i].date = data[i].date;
+    }
+    for (let i = 0; i < data.length; i++) {
       query += `('${data[i].date}',${data[i].value},${i + 1})`;
       if (i < data.length - 1) query += ",";
     }
