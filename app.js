@@ -27,6 +27,11 @@ const io = require("socket.io")(http, {
   },
 });
 app.use(express.static("public"));
+
+app.get("/googleassistant", (req, res) => {
+  res.send("ok");
+});
+
 let board_data = {
   boardIsConnected: false,
   temp: {},
