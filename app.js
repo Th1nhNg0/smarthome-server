@@ -103,6 +103,10 @@ io.on("connection", (socket) => {
       socket.emit("temp_data", results);
     });
   });
+  socket.on("door", (data) => {
+    console.log("DOOR:", data);
+    io.emit("door", data);
+  });
   socket.on("GPIO_control", (payload) => {
     io.emit("GPIO_control", payload);
     console.log("CLIENT SEND GPIO_CONTROL CMD: ", payload);

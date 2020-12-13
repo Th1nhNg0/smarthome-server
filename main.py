@@ -4,6 +4,7 @@ import os
 import glob
 import socketio
 import datetime
+import _thread
 
 RELAY_OUTPUT = [4, 5, 6, 12, 17, 18, 25, 27]
 
@@ -54,6 +55,11 @@ def disconnect():
 
 
 @sio.event
+def door(data):
+    print("door", data['state'])
+
+
+@sio.event
 def GPIO_control(data):
     cong = int(data['GPIO'])
     state = int(data['state'])
@@ -63,28 +69,33 @@ def GPIO_control(data):
 # chay ham nay de xem chan nao dang bat/tat
 
 
-def get_GPIO_info():
+def GPIO_info(time):
     data = {}
     for relay in RELAY_OUTPUT:
         data[relay] = GPIO.input(relay)
-    return data
+    sio.emit('board_data', {'GPIO': data})
+    print('send GPIO info')
+    sleep(time)
+    GPIO_info(time)
+
+
+def temp_info(time):
+    nhietdo = [read_temp(x) for x in device_files]
+    thoigian = str(datetime.datetime.now())
+    send_data = [
+        {'date': thoigian, 'value': float(v)/1000} for v in nhietdo]
+    sio.emit('temp_sensor', send_data)
+    print('send temp info')
+    sleep(time)
+    temp_info(time)
 
 
 sio.connect('http://192.168.43.60:3000?name=board')
 
 try:
-    while True:
-        # sleep(.2)
-        nhietdo = [read_temp(x) for x in device_files]
-        thoigian = str(datetime.datetime.now())
+    _thread.start_new_thread(temp_info, (1,))
+    _thread.start_new_thread(GPIO_info, (1,))
 
-        send_data = [
-            {'date': thoigian, 'value': float(v)/1000} for v in nhietdo]
-        sio.emit('temp_sensor', send_data)
-
-        GPIO_info = get_GPIO_info()
-        sio.emit('board_data', {'GPIO': GPIO_info})
-
-except KeyboardInterrupt:
-    sio.disconnect()
-    GPIO.cleanup()
+except:
+    print("Error: unable to start thread")
+sio.wait()

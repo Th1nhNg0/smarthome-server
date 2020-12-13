@@ -2,9 +2,11 @@ import random
 import threading
 import socketio
 import datetime
-
+import _thread
+from time import sleep
 
 # standard Python
+RELAY_OUTPUT = [4, 5, 6, 12, 17, 18, 25, 27]
 sio = socketio.Client()
 v = [30, 30, 30, 30]
 
@@ -20,21 +22,27 @@ def connect_error():
 
 
 @sio.event
+def door(data):
+    print("door", data['state'])
+
+
+@sio.event
+def GPIO_control(data):
+    cong = int(data['GPIO'])
+    state = int(data['state'])
+    print('cong', cong, 'state', state)
+
+
+@sio.event
 def disconnect():
     print("I'm disconnected!")
 
 
-sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
-# sio.connect('http://localhost:3000?name=board')
+# sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
+sio.connect('http://localhost:3000?name=board')
 
 
-def setInterval(func, time):
-    e = threading.Event()
-    while not e.wait(time):
-        func()
-
-
-def foo():
+def temp_info(time):
     global v
 
     x = str(datetime.datetime.now())
@@ -42,7 +50,24 @@ def foo():
         v[i] = v[i] + random.uniform(-8, 8)
     send_data = [{'date': x, 'value': vi} for vi in v]
     sio.emit('temp_sensor', send_data)
-    print("send data to server", v)
+    print(1)
+    sleep(time)
+    temp_info(time)
 
 
-setInterval(foo, 1)
+def GPIO_info(time):
+    data = {}
+    for relay in RELAY_OUTPUT:
+        data[relay] = random.randint(0, 1)
+    sio.emit('board_data', {'GPIO': data})
+    print(2)
+    sleep(time)
+    GPIO_info(time)
+
+
+try:
+    _thread.start_new_thread(temp_info, (1,))
+    _thread.start_new_thread(GPIO_info, (1,))
+
+except:
+    print("Error: unable to start thread")
