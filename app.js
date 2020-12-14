@@ -19,12 +19,7 @@ connection.query(
   }
 );
 
-const io = require("socket.io")(http, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-  },
-});
+const io = require("socket.io")(http, {});
 app.use(express.static("public"));
 
 app.get("/googleassistant", (req, res) => {
