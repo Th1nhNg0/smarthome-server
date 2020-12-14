@@ -5,6 +5,7 @@ import datetime
 import _thread
 from time import sleep
 
+
 # standard Python
 RELAY_OUTPUT = [4, 5, 6, 12, 17, 18, 25, 27]
 sio = socketio.Client()
@@ -23,7 +24,12 @@ def connect_error():
 
 @sio.event
 def door(data):
-    print("door", data['state'])
+    state = data['state']
+    print("door", state)
+    if state:
+        p.ChangeDutyCycle(7.5)
+    else:
+        p.ChangeDutyCycle(12.5)
 
 
 @sio.event
@@ -38,8 +44,8 @@ def disconnect():
     print("I'm disconnected!")
 
 
-# sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
-sio.connect('http://localhost:3000?name=board')
+sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
+# sio.connect('http://localhost:3000?name=board')
 
 
 def temp_info(time):

@@ -12,6 +12,11 @@ GPIO.setmode(GPIO.BCM)
 for relay in RELAY_OUTPUT:
     GPIO.setup(relay, GPIO.OUT)
 
+# cua
+GPIO.setup(20, GPIO.OUT)
+door_GPIO = GPIO.PWM(20, 50)
+door_GPIO.start(7)
+
 sio = socketio.Client()
 #os.system('modprobe w1-gpio')
 #os.system('modprobe w1-therm')
@@ -56,7 +61,12 @@ def disconnect():
 
 @sio.event
 def door(data):
-    print("door", data['state'])
+    state = data['state']
+    print("door", state)
+    if state:
+        door_GPIO.ChangeDutyCycle(7.5)
+    else:
+        door_GPIO.ChangeDutyCycle(12.5)
 
 
 @sio.event
@@ -90,12 +100,13 @@ def temp_info(time):
     temp_info(time)
 
 
-sio.connect('http://192.168.43.60:3000?name=board')
+sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
+
+# sio.connect('http://192.168.43.60:3000?name=board')
 
 try:
     _thread.start_new_thread(temp_info, (1,))
     _thread.start_new_thread(GPIO_info, (1,))
-
 except:
     print("Error: unable to start thread")
 sio.wait()
