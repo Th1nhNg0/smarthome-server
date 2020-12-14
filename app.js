@@ -33,12 +33,13 @@ app.get("/googleassistant", (req, res) => {
 
 let board_data = {
   boardIsConnected: false,
-  temp: {
-    interval: false,
-  },
-
+  temp: {},
   data: {
     GPIO: {},
+  },
+  temp_control: {
+    enable: false,
+    value: 30,
   },
 };
 
@@ -52,14 +53,11 @@ io.on("connection", (socket) => {
   console.log(`a ${socket.device_name} connected`);
 
   socket.on("temp_sensor", (data) => {
-    let alert = false;
-    for (let x of board_data.temp) if (x.status == 2) alert = true;
-    if (!alert && board_data.temp.interval) {
-      clearInterval(board_data.temp.interval);
-      board_data.temp.interval = false;
-    }
     io.emit("temp_sensor", data);
     let id = data.id;
+    if (id == 2 && board_data.temp_control.enable) {
+      io.emit("temp_control", board_data.temp_control.value < data.value);
+    }
     let query = `INSERT INTO temperature (date,temp, room_id) VALUES ('${data.date}',${data.value},${id})`;
     if (!board_data.temp[id]) {
       board_data.temp[id] = {};
@@ -72,20 +70,6 @@ io.on("connection", (socket) => {
       board_data.temp[id].lastUpdate = new Date(data.date);
       if (data.value > 40) {
         board_data.temp[id].status = 2;
-        if (!board_data.temp.interval) {
-          io.emit("GPIO_control", { GPIO: 5, state: 1 });
-          io.emit("GPIO_control", { GPIO: 25, state: 0 });
-          board_data.temp.interval = setInterval(() => {
-            io.emit("GPIO_control", {
-              GPIO: 5,
-              state: board_data.data.GPIO[5] ? 0 : 1,
-            });
-            io.emit("GPIO_control", {
-              GPIO: 25,
-              state: board_data.data.GPIO[25] ? 0 : 1,
-            });
-          }, 1000);
-        }
       } else if (
         board_data.temp[id] &&
         data.value - board_data.temp[id].value > 2
@@ -99,6 +83,10 @@ io.on("connection", (socket) => {
     connection.query(query, function (error, results, fields) {
       if (error) throw error;
     });
+    let alert = false;
+    for (let x in board_data.temp)
+      if (board_data.temp[x].status == 2) alert = true;
+    io.emit("alert", alert);
   });
   socket.on("temp_data", (payload) => {
     let query = `SELECT room_id,date, SUM(temp)/COUNT(temp) as value
@@ -126,7 +114,12 @@ io.on("connection", (socket) => {
     io.emit("GPIO_control", payload);
     console.log("CLIENT SEND GPIO_CONTROL CMD: ", payload);
   });
-
+  socket.on("temp_control_toggle", () => {
+    board_data.temp_control.enable = !board_data.temp_control.enable;
+  });
+  socket.on("temp_control_value", (value) => {
+    board_data.temp_control.value += value;
+  });
   socket.on("disconnect", () => {
     console.log(`a ${socket.device_name} disconnected`);
     if (socket.device_name == "board") {
@@ -140,7 +133,7 @@ io.on("connection", (socket) => {
 
 setInterval(() => {
   io.emit("board_data", board_data);
-}, 1000);
+}, 1000 / 60);
 
 http.listen(process.env.PORT || 3000, () => {
   console.log("listening on *:", process.env.PORT || 3000);

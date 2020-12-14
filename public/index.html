@@ -90,7 +90,7 @@
               style="background-color: gray"
             >
               <div class="flex gap-5 justify-between">
-                <h1>Phòng A</h1>
+                <h1>Phòng B</h1>
                 <p class="text-blue-700"><span id="temp_value_1">30</span>°C</p>
               </div>
               <p id="temp_status_1" class="text-gray-200">Trạng thái 1</p>
@@ -101,7 +101,7 @@
               style="background-color: gray"
             >
               <div class="flex gap-5 justify-between">
-                <h1>Phòng B</h1>
+                <h1>Phòng C</h1>
                 <p class="text-blue-700"><span id="temp_value_2">30</span>°C</p>
               </div>
               <p id="temp_status_2" class="text-gray-200">Trạng thái 1</p>
@@ -112,7 +112,7 @@
               style="background-color: gray"
             >
               <div class="flex gap-5 justify-between">
-                <h1>Phòng C</h1>
+                <h1>Phòng D</h1>
                 <p class="text-blue-700"><span id="temp_value_3">30</span>°C</p>
               </div>
               <p id="temp_status_3" class="text-gray-200">Trạng thái 1</p>
@@ -128,23 +128,56 @@
             class="grid grid-cols-3 md:grid-cols-4 gap-4 p-4 justify-center items-center mt-5"
           >
             <div
-              class="bg-blue-400 col-span-3 md:col-span-2 h-full w-full p-4 rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
+              class="bg-blue-400 col-span-3 md:col-span-2 h-full w-full p-4 rounded-3xl transition-all duration-75 ease-in-out"
             >
-              <h1 class="font-bold text-white">
-                Điều khiển nhiệt độ <span></span>
+              <h1
+                class="font-bold text-white text-xl flex justify-between items-center"
+              >
+                Điều khiển nhiệt độ
+                <span
+                  class="px-2 py-1 rounded-xl cursor-pointer"
+                  onclick="temp_control_toggle()"
+                  id="temp_control_enable"
+                  >Tắt</span
+                >
               </h1>
-              <h2 id="temp_control"></h2>
+              <div
+                class="mt-2 border-blue-900 border-8 w-32 rounded-full h-32 mx-auto flex justify-center items-center"
+              >
+                <h2
+                  id="temp_control_value"
+                  class="text-5xl font-bold text-blue-100"
+                >
+                  30
+                </h2>
+              </div>
+              <div
+                class="flex mt-5 items-center justify-evenly text-xl text-white"
+              >
+                <div
+                  onclick="temp_control_value(-1)"
+                  class="px-4 py-2 bg-purple-300 rounded-2xl font-bold cursor-pointer"
+                >
+                  Giảm
+                </div>
+                <div
+                  onclick="temp_control_value(1)"
+                  class="px-4 py-2 bg-purple-300 rounded-2xl font-bold cursor-pointer"
+                >
+                  Tăng
+                </div>
+              </div>
             </div>
             <div
               onclick="door(false)"
-              class="bg-red-700 p-4 rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
+              class="bg-red-700 p-4 w-full h-full flex justify-center flex-col rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
             >
               <img class="p-1 text-white" src="door2.svg" />
               <h1 class="font-bold text-white">Đóng cửa</h1>
             </div>
             <div
               onclick="door(true)"
-              class="bg-green-700 p-4 h-full w-full rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
+              class="bg-green-700 p-4 h-full w-full flex justify-center flex-col rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
             >
               <img class="p-1 text-white" src="door1.svg" />
               <h1 class="font-bold text-white">Mở cửa</h1>
@@ -280,10 +313,10 @@
               <br />
               <label for="room_id">Phòng</label>
               <select name="room_id" id="room_id" class="border-2">
-                <option value="1">A</option>
-                <option value="2" selected>B</option>
-                <option value="3">C</option>
-                <option value="4">D</option>
+                <option value="0">A</option>
+                <option value="1" selected>B</option>
+                <option value="2">C</option>
+                <option value="3">D</option>
               </select>
             </div>
             <div class="flex-1">
@@ -426,6 +459,12 @@
       function door(state) {
         socket.emit("door", { state });
       }
+      function temp_control_value(value) {
+        socket.emit("temp_control_value", value);
+      }
+      function temp_control_toggle() {
+        socket.emit("temp_control_toggle");
+      }
       let temp_graph_1 = createChart("canvas");
       let temp_graph_2 = createChart("canvas2");
       let temp_graph_3 = createChart("canvas3");
@@ -452,6 +491,19 @@
       });
       socket.on("board_data", (data) => {
         boardConnect(data.boardIsConnected);
+
+        let temp_control = data.temp_control;
+        $("#temp_control_value").html(temp_control.value);
+        let temp_control_enable = temp_control.enable;
+        if (temp_control_enable) {
+          $("#temp_control_enable").html("Tắt");
+          $("#temp_control_enable").removeClass("bg-green-400");
+          $("#temp_control_enable").addClass("bg-red-400");
+        } else {
+          $("#temp_control_enable").html("Bật");
+          $("#temp_control_enable").removeClass("bg-red-400");
+          $("#temp_control_enable").addClass("bg-green-400");
+        }
         let GPIO = data.data.GPIO;
         for (let relay in GPIO) {
           let e = $("#GPIO" + relay);
@@ -491,7 +543,6 @@
           data.push(e.value);
           totalTemp += e.value;
         }
-        console.log(payload);
         replaceData(query_graph, labels, data);
         $("#query_temp").text((totalTemp / data.length).toFixed(2));
       });
