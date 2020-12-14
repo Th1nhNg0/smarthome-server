@@ -373,7 +373,7 @@
         chart.data.datasets.forEach((dataset) => {
           dataset.data.push(data);
         });
-        if (chart.data.labels.length > 20) removeData(chart);
+        if (chart.data.labels.length > 30) removeData(chart);
         chart.update();
       }
       function replaceData(chart, labels, data) {
