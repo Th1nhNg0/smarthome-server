@@ -480,7 +480,7 @@
       socket.on("temp_sensor", (data) => {
         let g = graph[data.id];
         addData(g, data.date, data.value);
-        $("#temp_1").text(data.value.toFixed(2));
+        $("#temp_" + data.id).text(data.value.toFixed(2));
       });
       socket.on("temp_data", (payload) => {
         let labels = [];
