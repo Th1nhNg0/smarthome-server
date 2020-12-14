@@ -40,6 +40,7 @@ let board_data = {
   temp_control: {
     enable: false,
     value: 30,
+    state: false,
   },
 };
 
@@ -55,8 +56,18 @@ io.on("connection", (socket) => {
   socket.on("temp_sensor", (data) => {
     io.emit("temp_sensor", data);
     let id = data.id;
-    if (id == 2 && board_data.temp_control.enable) {
-      io.emit("temp_control", board_data.temp_control.value < data.value);
+    if (id == 2) {
+      if (board_data.temp_control.enable) {
+        let state = board_data.temp_control.state;
+        let new_state = false;
+        if (state) {
+          new_state = data.value > board_data.temp_control.value - 1;
+        } else {
+          new_state = data.value - board_data.temp_control.value > 1;
+        }
+        board_data.temp_control.state = new_state;
+        io.emit("temp_control", new_state);
+      } else io.emit("temp_control", 0);
     }
     let query = `INSERT INTO temperature (date,temp, room_id) VALUES ('${data.date}',${data.value},${id})`;
     if (!board_data.temp[id]) {
@@ -116,6 +127,7 @@ io.on("connection", (socket) => {
   });
   socket.on("temp_control_toggle", () => {
     board_data.temp_control.enable = !board_data.temp_control.enable;
+    console.log("temp-control-enable:", board_data.temp_control.enable);
   });
   socket.on("temp_control_value", (value) => {
     board_data.temp_control.value += value;

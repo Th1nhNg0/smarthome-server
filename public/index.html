@@ -56,8 +56,8 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body class="bg-gray-600">
-    <div class="container mx-auto min-h-screen p-5 md:p-10">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
+    <div class="container mx-auto min-h-screen p-5 md:p-20">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-16">
         <!-- status -->
         <div
           class="p-4 rounded-3xl md:col-span-2 bg-white text-center flex flex-col justify-center items-center"
@@ -182,15 +182,7 @@
               <img class="p-1 text-white" src="door1.svg" />
               <h1 class="font-bold text-white">Mở cửa</h1>
             </div>
-            <div
-              onclick="lightToggle(5)"
-              id="GPIO5"
-              data-state="0"
-              class="bg-gray-400 p-4 h-full w-full rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
-            >
-              <img class="p-1 text-white" src="lightbulb.svg" />
-              <h1 class="font-bold text-white">Đèn 2</h1>
-            </div>
+
             <div
               onclick="lightToggle(25)"
               id="GPIO25"
@@ -201,7 +193,24 @@
               <h1 class="font-bold text-white">Đèn 1</h1>
             </div>
             <div
-              onclick="lightToggle(12)"
+              onclick="lightToggle(5)"
+              id="GPIO5"
+              data-state="0"
+              class="bg-gray-400 p-4 h-full w-full rounded-3xl cursor-pointer transition-all duration-75 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn 2</h1>
+            </div>
+            <div
+              onclick="lightToggle(6)"
+              data-state="0"
+              id="GPIO6"
+              class="bg-gray-400 p-4 rounded-3xl h-full w-full cursor-pointer transition-all duration-75 ease-in-out"
+            >
+              <img class="p-1 text-white" src="lightbulb.svg" />
+              <h1 class="font-bold text-white">Đèn sưởi</h1>
+            </div>
+            <div
               id="GPIO12"
               data-state="0"
               class="bg-gray-400 p-4 rounded-3xl h-full w-full cursor-pointer transition-all duration-75 ease-in-out"
@@ -210,7 +219,6 @@
               <h1 class="font-bold text-white">Sò</h1>
             </div>
             <div
-              onclick="lightToggle(17)"
               id="GPIO17"
               exportparts="0"
               class="bg-gray-400 p-4 rounded-3xl h-full w-full cursor-pointer transition-all duration-75 ease-in-out"
@@ -220,22 +228,12 @@
             </div>
 
             <div
-              onclick="lightToggle(27)"
               data-state="0"
               id="GPIO27"
               class="bg-gray-400 p-4 rounded-3xl h-full w-full cursor-pointer transition-all duration-75 ease-in-out"
             >
               <img class="p-1 text-white" src="switch.svg" />
               <h1 class="font-bold text-white">Quạt sò</h1>
-            </div>
-            <div
-              onclick="lightToggle(6)"
-              data-state="0"
-              id="GPIO6"
-              class="bg-gray-400 p-4 rounded-3xl h-full w-full cursor-pointer transition-all duration-75 ease-in-out"
-            >
-              <img class="p-1 text-white" src="switch.svg" />
-              <h1 class="font-bold text-white">Đèn sưởi</h1>
             </div>
           </div>
         </div>
@@ -288,7 +286,7 @@
 
         <!-- this is chart with magic -->
         <div
-          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+          class="md:col-span-4 p-4 rounded-3xl bg-white relative text-center"
         >
           <h1 class="text-2xl font-bold">Thống kê nhiệt độ</h1>
           <p class="font-bold text-xl">
@@ -495,7 +493,7 @@
         let temp_control = data.temp_control;
         $("#temp_control_value").html(temp_control.value);
         let temp_control_enable = temp_control.enable;
-        if (temp_control_enable) {
+        if (!temp_control_enable) {
           $("#temp_control_enable").html("Tắt");
           $("#temp_control_enable").removeClass("bg-green-400");
           $("#temp_control_enable").addClass("bg-red-400");
