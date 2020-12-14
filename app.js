@@ -33,9 +33,7 @@ app.get("/googleassistant", (req, res) => {
 
 let board_data = {
   boardIsConnected: false,
-  temp: {
-    lastUpdate: new Date(),
-  },
+  temp: {},
 
   data: {
     GPIO: {},
@@ -52,37 +50,32 @@ io.on("connection", (socket) => {
   console.log(`a ${socket.device_name} connected`);
 
   socket.on("temp_sensor", (data) => {
-    if (data.length == 0) return;
     io.emit("temp_sensor", data);
-    let query = `INSERT INTO temperature (date,temp, room_id) VALUES `;
-
-    if (new Date(data[0].date) - board_data.temp.lastUpdate >= 3000) {
-      board_data.temp.lastUpdate = new Date(data[0].date);
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].value > 40) {
-          board_data.temp[i].status = 2;
-        } else if (
-          board_data.temp[i] &&
-          data[i].value - board_data.temp[i].value > 2
-        ) {
-          board_data.temp[i].status = 1;
-        } else {
-          if (!board_data.temp[i]) {
-            board_data.temp[i] = {};
-          }
-          board_data.temp[i].status = 0;
-        }
-        board_data.temp[i].value = data[i].value;
-        board_data.temp[i].date = data[i].date;
-      }
+    let id = data.id;
+    let query = `INSERT INTO temperature (date,temp, room_id) VALUES ('${data.date}',${data.value},${id})`;
+    if (!board_data.temp[id]) {
+      board_data.temp[id] = {};
+      board_data.temp[id].lastUpdate = new Date(data.date);
     }
-    for (let i = 0; i < data.length; i++) {
-      query += `('${data[i].date}',${data[i].value},${i + 1})`;
-      if (i < data.length - 1) query += ",";
+    if (
+      new Date(data.date) - new Date(board_data.temp[id].lastUpdate) >=
+      3000
+    ) {
+      board_data.temp.lastUpdate = new Date(data.date);
+      if (data.value > 40) {
+        board_data.temp[id].status = 2;
+      } else if (
+        board_data.temp[id] &&
+        data.value - board_data.temp[id].value > 2
+      ) {
+        board_data.temp[id].status = 1;
+      } else {
+        board_data.temp[id].status = 0;
+      }
+      board_data.temp[id].value = data.value;
     }
     connection.query(query, function (error, results, fields) {
       if (error) throw error;
-      //console.log("add temp to database", data);
     });
   });
   socket.on("temp_data", (payload) => {

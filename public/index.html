@@ -63,7 +63,7 @@
           class="p-4 rounded-3xl md:col-span-2 bg-white text-center flex flex-col justify-center items-center"
         >
           <h1 class="text-5xl font-bold text-purple-700">SMARTHOUSE</h1>
-          <h1 class="text-2xl font-bold mt-5">Trạng thái</h1>
+          <h1 class="text-2xl font-bold mt-5">Trạng thái:</h1>
           <p
             id="status"
             class="uppercase font-bold bg-red-500 mt-3 p-4 text-white"
@@ -430,6 +430,7 @@
       let temp_graph_2 = createChart("canvas2");
       let temp_graph_3 = createChart("canvas3");
       let temp_graph_4 = createChart("canvas4");
+      let graph = [temp_graph_1, temp_graph_2, temp_graph_3, temp_graph_4];
       let query_graph = createChart("canvas_query");
       $("#GPIO_control").on("submit", function (e) {
         e.preventDefault();
@@ -477,14 +478,9 @@
         }
       });
       socket.on("temp_sensor", (data) => {
-        addData(temp_graph_1, data[0].date, data[0].value);
-        $("#temp_1").text(data[0].value.toFixed(2));
-        addData(temp_graph_2, data[1].date, data[1].value);
-        $("#temp_2").text(data[1].value.toFixed(2));
-        addData(temp_graph_3, data[2].date, data[2].value);
-        $("#temp_3").text(data[2].value.toFixed(2));
-        addData(temp_graph_4, data[3].date, data[3].value);
-        $("#temp_4").text(data[3].value.toFixed(2));
+        let g = graph[data.id];
+        addData(g, data.date, data.value);
+        $("#temp_1").text(data.value.toFixed(2));
       });
       socket.on("temp_data", (payload) => {
         let labels = [];

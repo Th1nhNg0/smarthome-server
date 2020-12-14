@@ -15,11 +15,11 @@ for relay in RELAY_OUTPUT:
 # cua
 GPIO.setup(20, GPIO.OUT)
 door_GPIO = GPIO.PWM(20, 50)
-door_GPIO.start(7)
+door_GPIO.start(0)
 
 sio = socketio.Client()
-#os.system('modprobe w1-gpio')
-#os.system('modprobe w1-therm')
+os.system('modprobe w1-gpio')
+os.system('modprobe w1-therm')
 
 base_dir = '/sys/bus/w1/devices/'
 device_folders = glob.glob(base_dir+'28*')
@@ -34,10 +34,9 @@ def read_temp_raw(device_file):
 
 
 def read_temp(device_file):
-    print(device_file)
     lines = read_temp_raw(device_file)
     while lines[0].strip()[-3:] != 'YES':
-        sleep(0.2)
+        sleep(0.1)
         lines = read_temp_raw(device_file)
     kqn = lines[1].find('t=')
     if kqn != -1:
@@ -84,20 +83,19 @@ def GPIO_info(time):
     for relay in RELAY_OUTPUT:
         data[relay] = GPIO.input(relay)
     sio.emit('board_data', {'GPIO': data})
-    print('send GPIO info')
+    print('send GPIO info', data)
     sleep(time)
     GPIO_info(time)
 
 
-def temp_info(time):
-    nhietdo = [read_temp(x) for x in device_files]
+def temp_info(time, temp_file, temp_id):
+    nhietdo = read_temp(temp_file)
     thoigian = str(datetime.datetime.now())
-    send_data = [
-        {'date': thoigian, 'value': float(v)/1000} for v in nhietdo]
+    send_data = {'date': thoigian, 'value': float(nhietdo)/1000, 'id': temp_id}
     sio.emit('temp_sensor', send_data)
-    print('send temp info')
+    print('send temp info', temp_id, nhietdo)
     sleep(time)
-    temp_info(time)
+    temp_info(time, temp_file, temp_id)
 
 
 sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
@@ -105,8 +103,10 @@ sio.connect('https://smarthouse-spkt.herokuapp.com/?name=board')
 # sio.connect('http://192.168.43.60:3000?name=board')
 
 try:
-    _thread.start_new_thread(temp_info, (1,))
     _thread.start_new_thread(GPIO_info, (1,))
+    for (index, x) in enumerate(device_files):
+        _thread.start_new_thread(temp_info, (1, x, index,))
+
 except:
     print("Error: unable to start thread")
 sio.wait()
