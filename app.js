@@ -33,7 +33,9 @@ app.get("/googleassistant", (req, res) => {
 
 let board_data = {
   boardIsConnected: false,
-  temp: {},
+  temp: {
+    interval: false,
+  },
 
   data: {
     GPIO: {},
@@ -50,6 +52,12 @@ io.on("connection", (socket) => {
   console.log(`a ${socket.device_name} connected`);
 
   socket.on("temp_sensor", (data) => {
+    let alert = false;
+    for (let x of board_data.temp) if (x.status == 2) alert = true;
+    if (!alert && board_data.temp.interval) {
+      clearInterval(board_data.temp.interval);
+      board_data.temp.interval = false;
+    }
     io.emit("temp_sensor", data);
     let id = data.id;
     let query = `INSERT INTO temperature (date,temp, room_id) VALUES ('${data.date}',${data.value},${id})`;
@@ -61,9 +69,23 @@ io.on("connection", (socket) => {
       new Date(data.date) - new Date(board_data.temp[id].lastUpdate) >=
       3000
     ) {
-      board_data.temp.lastUpdate = new Date(data.date);
+      board_data.temp[id].lastUpdate = new Date(data.date);
       if (data.value > 40) {
         board_data.temp[id].status = 2;
+        if (!board_data.temp.interval) {
+          io.emit("GPIO_control", { GPIO: 5, state: 1 });
+          io.emit("GPIO_control", { GPIO: 25, state: 0 });
+          board_data.temp.interval = setInterval(() => {
+            io.emit("GPIO_control", {
+              GPIO: 5,
+              state: board_data.data.GPIO[5] ? 0 : 1,
+            });
+            io.emit("GPIO_control", {
+              GPIO: 25,
+              state: board_data.data.GPIO[25] ? 0 : 1,
+            });
+          }, 1000);
+        }
       } else if (
         board_data.temp[id] &&
         data.value - board_data.temp[id].value > 2
