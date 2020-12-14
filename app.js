@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
   socket.on("temp_sensor", (data) => {
     io.emit("temp_sensor", data);
     let id = data.id;
-    if (id == 2) {
+    if (id == 1) {
       if (board_data.temp_control.enable) {
         let state = board_data.temp_control.state;
         let new_state = false;

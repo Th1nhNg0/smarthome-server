@@ -72,7 +72,7 @@
           </p>
           <h1 class="text-2xl font-bold mt-5">Nhiệt độ:</h1>
 
-          <div class="grid md:grid-cols-2 justify-center gap-5 mt-5 text-left">
+          <div class="grid justify-center gap-5 mt-5 text-left">
             <div
               class="text-white font-bold p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
               id="temp_card_0"
@@ -84,6 +84,7 @@
               </div>
               <p id="temp_status_0" class="text-gray-200">Trạng thái 1</p>
             </div>
+
             <div
               class="text-white font-bold p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
               id="temp_card_1"
@@ -106,24 +107,13 @@
               </div>
               <p id="temp_status_2" class="text-gray-200">Trạng thái 1</p>
             </div>
-            <div
-              class="text-white font-bold p-4 rounded-3xl cursor-pointer transition-all duration-500 ease-in-out"
-              id="temp_card_3"
-              style="background-color: gray"
-            >
-              <div class="flex gap-5 justify-between">
-                <h1>Phòng D</h1>
-                <p class="text-blue-700"><span id="temp_value_3">30</span>°C</p>
-              </div>
-              <p id="temp_status_3" class="text-gray-200">Trạng thái 1</p>
-            </div>
           </div>
         </div>
         <!-- dieu khien  -->
         <div
           class="flex flex-col justify-center items-center p-4 md:col-span-2 rounded-3xl bg-white text-center"
         >
-          <h1 class="text-xl font-bold">Điều khiển</h1>
+          <h1 class="text-5xl font-bold">Điều khiển</h1>
           <div
             class="grid grid-cols-3 md:grid-cols-4 gap-4 p-4 justify-center items-center mt-5"
           >
@@ -241,7 +231,7 @@
         <div
           class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
         >
-          <h1 class="text-xl font-bold">
+          <h1 class="text-2xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng A
           </h1>
           <p class="text-blue-600 font-bold text-2xl">
@@ -253,40 +243,29 @@
         <div
           class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
         >
-          <h1 class="text-xl font-bold">
+          <h1 class="text-2xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng B
           </h1>
           <p class="text-blue-600 font-bold text-2xl">
             <span id="temp_1">30</span>°C
           </p>
-          <canvas id="canvas2"></canvas>
+          <canvas id="canvas3"></canvas>
         </div>
         <div
-          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center flex flex-col justify-center"
         >
-          <h1 class="text-xl font-bold">
+          <h1 class="text-2xl font-bold">
             Biểu đồ nhiệt thời gian thực phòng C
           </h1>
           <p class="text-blue-600 font-bold text-2xl">
             <span id="temp_2">30</span>°C
-          </p>
-          <canvas id="canvas3"></canvas>
-        </div>
-        <div
-          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
-        >
-          <h1 class="text-xl font-bold">
-            Biểu đồ nhiệt thời gian thực phòng D
-          </h1>
-          <p class="text-blue-600 font-bold text-2xl">
-            <span id="temp_3">30</span>°C
           </p>
           <canvas id="canvas4"></canvas>
         </div>
 
         <!-- this is chart with magic -->
         <div
-          class="md:col-span-4 p-4 rounded-3xl bg-white relative text-center"
+          class="md:col-span-2 p-4 rounded-3xl bg-white relative text-center"
         >
           <h1 class="text-2xl font-bold">Thống kê nhiệt độ</h1>
           <p class="font-bold text-xl">
@@ -312,9 +291,8 @@
               <label for="room_id">Phòng</label>
               <select name="room_id" id="room_id" class="border-2">
                 <option value="0">A</option>
-                <option value="1" selected>B</option>
+                <option value="1">B</option>
                 <option value="2">C</option>
-                <option value="3">D</option>
               </select>
             </div>
             <div class="flex-1">
@@ -464,10 +442,9 @@
         socket.emit("temp_control_toggle");
       }
       let temp_graph_1 = createChart("canvas");
-      let temp_graph_2 = createChart("canvas2");
       let temp_graph_3 = createChart("canvas3");
       let temp_graph_4 = createChart("canvas4");
-      let graph = [temp_graph_1, temp_graph_2, temp_graph_3, temp_graph_4];
+      let graph = [temp_graph_1, temp_graph_3, temp_graph_4];
       let query_graph = createChart("canvas_query");
       $("#GPIO_control").on("submit", function (e) {
         e.preventDefault();
